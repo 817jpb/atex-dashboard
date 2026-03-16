@@ -42,6 +42,57 @@ const tokenDictionary: Record<string, string> = {
   Dc: "EPL Dc: enhanced protection for dust atmospheres",
 }
 
+function chipStyle(token: string): React.CSSProperties {
+  const lower = token.toLowerCase()
+
+  if (["ga", "gb", "gc", "da", "db", "dc"].includes(lower)) {
+    return {
+      backgroundColor: "#eef6ff",
+      color: "#1d4f91",
+      border: "1px solid #c8dcff",
+    }
+  }
+
+  if (["ia", "ib", "ic", "db", "eb", "ec", "tb", "tc"].includes(lower)) {
+    return {
+      backgroundColor: "#effcf3",
+      color: "#185c37",
+      border: "1px solid #b7ebc6",
+    }
+  }
+
+  if (/^t[1-6]$/i.test(token)) {
+    return {
+      backgroundColor: "#fff8eb",
+      color: "#8a5a00",
+      border: "1px solid #f4d39c",
+    }
+  }
+
+  if (/^(iia|iib|iic|iiia|iiib|iiic)$/i.test(token)) {
+    return {
+      backgroundColor: "#f5f3ff",
+      color: "#5b3ea8",
+      border: "1px solid #ddd3ff",
+    }
+  }
+
+  return {
+    backgroundColor: "#f8fafc",
+    color: "#334155",
+    border: "1px solid #e2e8f0",
+  }
+}
+
+function sectionCardStyle(): React.CSSProperties {
+  return {
+    padding: "16px",
+    borderRadius: "12px",
+    border: "1px solid #e2e8f0",
+    backgroundColor: "#ffffff",
+  }
+}
+
 function MarkingInterpreter({ marking, setMarking }: MarkingInterpreterProps) {
   const tokens = useMemo(() => {
     return marking
@@ -104,7 +155,7 @@ function MarkingInterpreter({ marking, setMarking }: MarkingInterpreterProps) {
     }
 
     return (
-      <ul style={{ marginBottom: 0, lineHeight: 1.7 }}>
+      <ul style={{ marginBottom: 0, lineHeight: 1.8, paddingLeft: "20px" }}>
         {sectionTokens.map((token, index) => (
           <li key={`${token}-${index}`}>
             <strong>{token}</strong>:{" "}
@@ -126,7 +177,9 @@ function MarkingInterpreter({ marking, setMarking }: MarkingInterpreterProps) {
         boxShadow: "0 6px 18px rgba(15, 23, 42, 0.06)",
       }}
     >
-      <h2 style={{ marginTop: 0, marginBottom: "8px" }}>Equipment Marking Interpreter</h2>
+      <h2 style={{ marginTop: 0, marginBottom: "8px", color: "#12263f" }}>
+        Equipment Marking Interpreter
+      </h2>
 
       <p style={{ marginTop: 0, marginBottom: "20px", color: "#5b6472", lineHeight: 1.6 }}>
         Paste an Ex marking and the dashboard will break it into the main engineering
@@ -175,6 +228,48 @@ function MarkingInterpreter({ marking, setMarking }: MarkingInterpreterProps) {
         </div>
       </div>
 
+      <div
+        style={{
+          padding: "14px 16px",
+          borderRadius: "12px",
+          backgroundColor: "#fbfcfe",
+          border: "1px solid #e2e8f0",
+          marginBottom: "18px",
+        }}
+      >
+        <strong>Detected Tokens</strong>
+
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "10px",
+            marginTop: "12px",
+          }}
+        >
+          {tokens.length > 0 ? (
+            tokens.map((token, index) => (
+              <span
+                key={`${token}-chip-${index}`}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  padding: "7px 11px",
+                  borderRadius: "999px",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  ...chipStyle(token),
+                }}
+              >
+                {token}
+              </span>
+            ))
+          ) : (
+            <span style={{ color: "#64748b" }}>No tokens detected yet.</span>
+          )}
+        </div>
+      </div>
+
       {combinedProtectionExplanation && (
         <div
           style={{
@@ -198,104 +293,48 @@ function MarkingInterpreter({ marking, setMarking }: MarkingInterpreterProps) {
           gap: "16px",
         }}
       >
-        <div
-          style={{
-            padding: "16px",
-            borderRadius: "12px",
-            border: "1px solid #e2e8f0",
-            backgroundColor: "#ffffff",
-          }}
-        >
+        <div style={sectionCardStyle()}>
           <strong>Equipment Group</strong>
           <div style={{ marginTop: "10px" }}>{renderTokenList(groupedInterpretation.equipmentGroup)}</div>
         </div>
 
-        <div
-          style={{
-            padding: "16px",
-            borderRadius: "12px",
-            border: "1px solid #e2e8f0",
-            backgroundColor: "#ffffff",
-          }}
-        >
+        <div style={sectionCardStyle()}>
           <strong>Category</strong>
           <div style={{ marginTop: "10px" }}>{renderTokenList(groupedInterpretation.category)}</div>
         </div>
 
-        <div
-          style={{
-            padding: "16px",
-            borderRadius: "12px",
-            border: "1px solid #e2e8f0",
-            backgroundColor: "#ffffff",
-          }}
-        >
+        <div style={sectionCardStyle()}>
           <strong>Explosion Marking</strong>
           <div style={{ marginTop: "10px" }}>{renderTokenList(groupedInterpretation.exMarker)}</div>
         </div>
 
-        <div
-          style={{
-            padding: "16px",
-            borderRadius: "12px",
-            border: "1px solid #e2e8f0",
-            backgroundColor: "#ffffff",
-          }}
-        >
+        <div style={sectionCardStyle()}>
           <strong>Protection Concepts</strong>
           <div style={{ marginTop: "10px" }}>
             {renderTokenList(groupedInterpretation.protectionConcepts)}
           </div>
         </div>
 
-        <div
-          style={{
-            padding: "16px",
-            borderRadius: "12px",
-            border: "1px solid #e2e8f0",
-            backgroundColor: "#ffffff",
-          }}
-        >
+        <div style={sectionCardStyle()}>
           <strong>Gas / Dust Group</strong>
           <div style={{ marginTop: "10px" }}>
             {renderTokenList(groupedInterpretation.gasOrDustGroup)}
           </div>
         </div>
 
-        <div
-          style={{
-            padding: "16px",
-            borderRadius: "12px",
-            border: "1px solid #e2e8f0",
-            backgroundColor: "#ffffff",
-          }}
-        >
+        <div style={sectionCardStyle()}>
           <strong>Temperature Class</strong>
           <div style={{ marginTop: "10px" }}>
             {renderTokenList(groupedInterpretation.temperatureClass)}
           </div>
         </div>
 
-        <div
-          style={{
-            padding: "16px",
-            borderRadius: "12px",
-            border: "1px solid #e2e8f0",
-            backgroundColor: "#ffffff",
-          }}
-        >
+        <div style={sectionCardStyle()}>
           <strong>Equipment Protection Level</strong>
           <div style={{ marginTop: "10px" }}>{renderTokenList(groupedInterpretation.epl)}</div>
         </div>
 
-        <div
-          style={{
-            padding: "16px",
-            borderRadius: "12px",
-            border: "1px solid #e2e8f0",
-            backgroundColor: "#ffffff",
-          }}
-        >
+        <div style={sectionCardStyle()}>
           <strong>Other / Unrecognised Tokens</strong>
           <div style={{ marginTop: "10px" }}>{renderTokenList(groupedInterpretation.ungrouped)}</div>
         </div>

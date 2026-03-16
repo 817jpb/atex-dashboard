@@ -13,11 +13,83 @@ type MainTab = "overview" | "marking" | "zone" | "temperature"
 
 type TemperatureClass = "T1" | "T2" | "T3" | "T4" | "T5" | "T6"
 
+const pageStyle: React.CSSProperties = {
+  minHeight: "100vh",
+  background:
+    "linear-gradient(180deg, #f4f7fb 0%, #eef3f9 100%)",
+  padding: "32px 20px 48px",
+  boxSizing: "border-box",
+}
+
 const appShellStyle: React.CSSProperties = {
-  padding: "24px",
   fontFamily: "Arial, sans-serif",
-  maxWidth: "1200px",
+  maxWidth: "1240px",
   margin: "0 auto",
+}
+
+const heroStyle: React.CSSProperties = {
+  border: "1px solid #d9e2ec",
+  borderRadius: "24px",
+  padding: "28px 28px 24px",
+  background:
+    "linear-gradient(135deg, #ffffff 0%, #f8fbff 100%)",
+  boxShadow: "0 16px 40px rgba(15, 23, 42, 0.08)",
+  marginBottom: "24px",
+}
+
+const heroTitleStyle: React.CSSProperties = {
+  margin: 0,
+  fontSize: "34px",
+  lineHeight: 1.1,
+  color: "#10233f",
+}
+
+const heroSubtitleStyle: React.CSSProperties = {
+  marginTop: "12px",
+  marginBottom: "18px",
+  color: "#526071",
+  lineHeight: 1.7,
+  maxWidth: "860px",
+  fontSize: "16px",
+}
+
+const heroBadgeRowStyle: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "10px",
+}
+
+const heroBadgeStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "8px",
+  padding: "8px 12px",
+  borderRadius: "999px",
+  border: "1px solid #d7e4f4",
+  backgroundColor: "#f8fbff",
+  color: "#27496d",
+  fontSize: "14px",
+  fontWeight: 700,
+}
+
+const tabBarWrapStyle: React.CSSProperties = {
+  marginBottom: "26px",
+}
+
+const tabBarStyle: React.CSSProperties = {
+  display: "flex",
+  gap: "10px",
+  flexWrap: "wrap",
+  padding: "10px",
+  borderRadius: "18px",
+  backgroundColor: "#ffffff",
+  border: "1px solid #d8dee8",
+  boxShadow: "0 10px 24px rgba(15, 23, 42, 0.05)",
+}
+
+const contentSectionStyle: React.CSSProperties = {
+  display: "grid",
+  gap: "20px",
 }
 
 const gridStyle: React.CSSProperties = {
@@ -29,24 +101,32 @@ const gridStyle: React.CSSProperties = {
 
 const panelStyle: React.CSSProperties = {
   border: "1px solid #d8dee8",
-  borderRadius: "16px",
-  padding: "20px",
+  borderRadius: "18px",
+  padding: "22px",
   backgroundColor: "#ffffff",
   textAlign: "left",
-  boxShadow: "0 6px 18px rgba(15, 23, 42, 0.06)",
+  boxShadow: "0 10px 28px rgba(15, 23, 42, 0.06)",
+}
+
+const softPanelStyle: React.CSSProperties = {
+  ...panelStyle,
+  background: "linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%)",
 }
 
 const sectionTitleStyle: React.CSSProperties = {
   marginTop: 0,
   marginBottom: "8px",
-  fontSize: "24px",
+  fontSize: "26px",
+  lineHeight: 1.2,
+  color: "#12263f",
 }
 
 const sectionIntroStyle: React.CSSProperties = {
   marginTop: 0,
   marginBottom: "20px",
   color: "#5b6472",
-  lineHeight: 1.5,
+  lineHeight: 1.6,
+  fontSize: "15px",
 }
 
 const fieldLabelStyle: React.CSSProperties = {
@@ -59,21 +139,36 @@ const fieldLabelStyle: React.CSSProperties = {
 const selectStyle: React.CSSProperties = {
   width: "100%",
   maxWidth: "340px",
-  padding: "10px 12px",
+  padding: "11px 13px",
   fontSize: "15px",
-  borderRadius: "10px",
+  borderRadius: "12px",
   border: "1px solid #cbd5e1",
   backgroundColor: "#ffffff",
+  color: "#10233f",
 }
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
   maxWidth: "420px",
-  padding: "10px 12px",
+  padding: "11px 13px",
   fontSize: "15px",
-  borderRadius: "10px",
+  borderRadius: "12px",
   border: "1px solid #cbd5e1",
   backgroundColor: "#ffffff",
+  color: "#10233f",
+}
+
+const infoGridStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gap: "14px",
+}
+
+const infoTileStyle: React.CSSProperties = {
+  padding: "16px 18px",
+  borderRadius: "16px",
+  border: "1px solid #dde6f0",
+  backgroundColor: "#f8fbff",
 }
 
 const tClassMaxSurfaceTemp: Record<TemperatureClass, number> = {
@@ -179,7 +274,7 @@ function TemperatureClassTool({
   }
 
   return (
-    <div style={panelStyle}>
+    <div style={softPanelStyle}>
       <h2 style={sectionTitleStyle}>Temperature Class Checker</h2>
       <p style={sectionIntroStyle}>
         Check whether the equipment T-class in the marking is suitable for the gas
@@ -217,8 +312,8 @@ function TemperatureClassTool({
       <div
         style={{
           marginTop: "18px",
-          padding: "14px 16px",
-          borderRadius: "12px",
+          padding: "16px 18px",
+          borderRadius: "14px",
           backgroundColor: "#f8fafc",
           border: "1px solid #e2e8f0",
         }}
@@ -232,16 +327,26 @@ function TemperatureClassTool({
       <div
         style={{
           marginTop: "18px",
-          padding: "16px",
-          borderRadius: "12px",
+          padding: "18px",
+          borderRadius: "14px",
           ...resultStyle[result.status],
         }}
       >
         <div style={{ fontWeight: 700, marginBottom: "8px" }}>{result.title}</div>
-        <div style={{ lineHeight: 1.6 }}>{result.body}</div>
+        <div style={{ lineHeight: 1.7 }}>{result.body}</div>
       </div>
 
-      <div style={{ marginTop: "18px", color: "#5b6472", lineHeight: 1.6 }}>
+      <div
+        style={{
+          marginTop: "18px",
+          padding: "16px 18px",
+          borderRadius: "14px",
+          backgroundColor: "#f8fbff",
+          border: "1px solid #dde6f0",
+          color: "#4f5d6b",
+          lineHeight: 1.7,
+        }}
+      >
         <strong>Typical T-class limits:</strong> T1 450°C, T2 300°C, T3 200°C, T4 135°C,
         T5 100°C, T6 85°C.
       </div>
@@ -279,165 +384,139 @@ function App() {
     : []
 
   const tabButtonStyle = (isActive: boolean): React.CSSProperties => ({
-    padding: "10px 16px",
-    borderRadius: "12px",
-    border: isActive ? "1px solid #2d6cdf" : "1px solid #d3dae6",
-    backgroundColor: isActive ? "#eaf2ff" : "#ffffff",
-    color: isActive ? "#1f4fbf" : "#334155",
+    padding: "12px 18px",
+    borderRadius: "14px",
+    border: isActive ? "1px solid #2d6cdf" : "1px solid transparent",
+    background: isActive
+      ? "linear-gradient(135deg, #edf4ff 0%, #e5efff 100%)"
+      : "transparent",
+    color: isActive ? "#1746a2" : "#475569",
     fontWeight: isActive ? 700 : 600,
     cursor: "pointer",
     fontSize: "15px",
-    boxShadow: isActive ? "0 6px 14px rgba(45, 108, 223, 0.12)" : "none",
+    boxShadow: isActive ? "0 10px 20px rgba(45, 108, 223, 0.12)" : "none",
   })
 
   return (
-    <div style={appShellStyle}>
-      <h1 style={{ marginBottom: "8px" }}>ATEX Dashboard</h1>
-      <p style={{ marginTop: 0, marginBottom: "24px", color: "#555", lineHeight: 1.6 }}>
-        Hazardous area reference, equipment marking interpretation, and quick engineering
-        suitability tools.
-      </p>
-
-      <div
-        style={{
-          display: "flex",
-          gap: "12px",
-          marginBottom: "28px",
-          flexWrap: "wrap",
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => setMainTab("overview")}
-          style={tabButtonStyle(mainTab === "overview")}
-        >
-          Overview
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setMainTab("marking")}
-          style={tabButtonStyle(mainTab === "marking")}
-        >
-          Marking Interpreter
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setMainTab("zone")}
-          style={tabButtonStyle(mainTab === "zone")}
-        >
-          Zone Suitability
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setMainTab("temperature")}
-          style={tabButtonStyle(mainTab === "temperature")}
-        >
-          Temperature Class
-        </button>
-      </div>
-
-      {mainTab === "overview" && (
-        <>
-          <h2 style={sectionTitleStyle}>ATEX ↔ Class/Division Comparison</h2>
-          <p style={sectionIntroStyle}>
-            Compare gas and dust zoning against the nearest US Class/Division approach and
-            review typical marking expectations.
+    <div style={pageStyle}>
+      <div style={appShellStyle}>
+        <div style={heroStyle}>
+          <h1 style={heroTitleStyle}>ATEX Dashboard</h1>
+          <p style={heroSubtitleStyle}>
+            Hazardous area reference, equipment marking interpretation, and quick
+            engineering suitability tools for gas and dust applications.
           </p>
 
-          <div style={{ ...panelStyle, marginBottom: "20px" }}>
-            <label htmlFor="hazard-mode-select" style={fieldLabelStyle}>
-              Hazard Mode
-            </label>
-
-            <select
-              id="hazard-mode-select"
-              value={hazardMode}
-              onChange={(event) => setHazardMode(event.target.value as HazardMode)}
-              style={selectStyle}
-            >
-              <option value="gas">Gas</option>
-              <option value="dust">Dust</option>
-              <option value="gas-dust">Gas + Dust</option>
-            </select>
+          <div style={heroBadgeRowStyle}>
+            <div style={heroBadgeStyle}>ATEX / IECEx reference</div>
+            <div style={heroBadgeStyle}>US Class / Division comparison</div>
+            <div style={heroBadgeStyle}>Marking interpretation</div>
+            <div style={heroBadgeStyle}>Zone suitability checks</div>
+            <div style={heroBadgeStyle}>Temperature class support</div>
           </div>
+        </div>
 
-          {hazardMode === "gas" && (
-            <>
-              <div style={{ ...panelStyle, marginBottom: "20px" }}>
-                <label htmlFor="gas-zone-select" style={fieldLabelStyle}>
-                  Select ATEX Gas Zone
-                </label>
+        <div style={tabBarWrapStyle}>
+          <div style={tabBarStyle}>
+            <button
+              type="button"
+              onClick={() => setMainTab("overview")}
+              style={tabButtonStyle(mainTab === "overview")}
+            >
+              Overview
+            </button>
 
-                <select
-                  id="gas-zone-select"
-                  value={selectedGasZoneId}
-                  onChange={(event) => setSelectedGasZoneId(event.target.value)}
-                  style={selectStyle}
-                >
-                  {gasZones.map((zone) => (
-                    <option key={zone.id} value={zone.id}>
-                      ATEX Zone {zone.zone} – GAS
-                    </option>
-                  ))}
-                </select>
+            <button
+              type="button"
+              onClick={() => setMainTab("marking")}
+              style={tabButtonStyle(mainTab === "marking")}
+            >
+              Marking Interpreter
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setMainTab("zone")}
+              style={tabButtonStyle(mainTab === "zone")}
+            >
+              Zone Suitability
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setMainTab("temperature")}
+              style={tabButtonStyle(mainTab === "temperature")}
+            >
+              Temperature Class
+            </button>
+          </div>
+        </div>
+
+        {mainTab === "overview" && (
+          <div style={contentSectionStyle}>
+            <div style={softPanelStyle}>
+              <h2 style={sectionTitleStyle}>ATEX ↔ Class/Division Comparison</h2>
+              <p style={sectionIntroStyle}>
+                Compare gas and dust zoning against the nearest US Class/Division
+                approach and review typical marking expectations.
+              </p>
+
+              <div style={infoGridStyle}>
+                <div style={infoTileStyle}>
+                  <div style={{ fontWeight: 700, marginBottom: "6px", color: "#12263f" }}>
+                    Zone 0 / 20
+                  </div>
+                  <div style={{ color: "#5b6472", lineHeight: 1.6 }}>
+                    Continuous or long-duration presence of explosive atmosphere.
+                  </div>
+                </div>
+
+                <div style={infoTileStyle}>
+                  <div style={{ fontWeight: 700, marginBottom: "6px", color: "#12263f" }}>
+                    Zone 1 / 21
+                  </div>
+                  <div style={{ color: "#5b6472", lineHeight: 1.6 }}>
+                    Hazard likely in normal operation.
+                  </div>
+                </div>
+
+                <div style={infoTileStyle}>
+                  <div style={{ fontWeight: 700, marginBottom: "6px", color: "#12263f" }}>
+                    Zone 2 / 22
+                  </div>
+                  <div style={{ color: "#5b6472", lineHeight: 1.6 }}>
+                    Hazard infrequent and short duration.
+                  </div>
+                </div>
               </div>
+            </div>
 
-              <div style={gridStyle}>
-                <AtexCard title="ATEX / IECEx Gas" selectedZone={selectedGasZone} />
-                <UsComparisonCard
-                  title="Nearest US Class/Division Equivalent"
-                  mappedUS={mappedGasUS}
-                  mapping={gasMapping}
-                />
-              </div>
-            </>
-          )}
+            <div style={softPanelStyle}>
+              <label htmlFor="hazard-mode-select" style={fieldLabelStyle}>
+                Hazard Mode
+              </label>
 
-          {hazardMode === "dust" && (
-            <>
-              <div style={{ ...panelStyle, marginBottom: "20px" }}>
-                <label htmlFor="dust-zone-select" style={fieldLabelStyle}>
-                  Select ATEX Dust Zone
-                </label>
+              <select
+                id="hazard-mode-select"
+                value={hazardMode}
+                onChange={(event) => setHazardMode(event.target.value as HazardMode)}
+                style={selectStyle}
+              >
+                <option value="gas">Gas</option>
+                <option value="dust">Dust</option>
+                <option value="gas-dust">Gas + Dust</option>
+              </select>
+            </div>
 
-                <select
-                  id="dust-zone-select"
-                  value={selectedDustZoneId}
-                  onChange={(event) => setSelectedDustZoneId(event.target.value)}
-                  style={selectStyle}
-                >
-                  {dustZones.map((zone) => (
-                    <option key={zone.id} value={zone.id}>
-                      ATEX Zone {zone.zone} – DUST
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div style={gridStyle}>
-                <AtexCard title="ATEX / IECEx Dust" selectedZone={selectedDustZone} />
-                <UsComparisonCard
-                  title="Nearest US Class/Division Equivalent"
-                  mappedUS={mappedDustUS}
-                  mapping={dustMapping}
-                />
-              </div>
-            </>
-          )}
-
-          {hazardMode === "gas-dust" && (
-            <>
-              <div style={{ ...gridStyle, marginBottom: "20px" }}>
-                <div style={panelStyle}>
-                  <label htmlFor="gas-zone-select-combined" style={fieldLabelStyle}>
+            {hazardMode === "gas" && (
+              <>
+                <div style={softPanelStyle}>
+                  <label htmlFor="gas-zone-select" style={fieldLabelStyle}>
                     Select ATEX Gas Zone
                   </label>
 
                   <select
-                    id="gas-zone-select-combined"
+                    id="gas-zone-select"
                     value={selectedGasZoneId}
                     onChange={(event) => setSelectedGasZoneId(event.target.value)}
                     style={selectStyle}
@@ -450,13 +529,26 @@ function App() {
                   </select>
                 </div>
 
-                <div style={panelStyle}>
-                  <label htmlFor="dust-zone-select-combined" style={fieldLabelStyle}>
+                <div style={gridStyle}>
+                  <AtexCard title="ATEX / IECEx Gas" selectedZone={selectedGasZone} />
+                  <UsComparisonCard
+                    title="Nearest US Class/Division Equivalent"
+                    mappedUS={mappedGasUS}
+                    mapping={gasMapping}
+                  />
+                </div>
+              </>
+            )}
+
+            {hazardMode === "dust" && (
+              <>
+                <div style={softPanelStyle}>
+                  <label htmlFor="dust-zone-select" style={fieldLabelStyle}>
                     Select ATEX Dust Zone
                   </label>
 
                   <select
-                    id="dust-zone-select-combined"
+                    id="dust-zone-select"
                     value={selectedDustZoneId}
                     onChange={(event) => setSelectedDustZoneId(event.target.value)}
                     style={selectStyle}
@@ -468,87 +560,167 @@ function App() {
                     ))}
                   </select>
                 </div>
-              </div>
 
-              <div style={{ ...gridStyle, marginBottom: "20px" }}>
-                <AtexCard title="ATEX / IECEx Gas" selectedZone={selectedGasZone} />
-                <AtexCard title="ATEX / IECEx Dust" selectedZone={selectedDustZone} />
-              </div>
+                <div style={gridStyle}>
+                  <AtexCard title="ATEX / IECEx Dust" selectedZone={selectedDustZone} />
+                  <UsComparisonCard
+                    title="Nearest US Class/Division Equivalent"
+                    mappedUS={mappedDustUS}
+                    mapping={dustMapping}
+                  />
+                </div>
+              </>
+            )}
 
-              <div style={{ ...gridStyle, marginBottom: "20px" }}>
-                <UsComparisonCard
-                  title="Nearest US Gas Equivalent"
-                  mappedUS={mappedGasUS}
-                  mapping={gasMapping}
-                />
+            {hazardMode === "gas-dust" && (
+              <>
+                <div style={gridStyle}>
+                  <div style={softPanelStyle}>
+                    <label htmlFor="gas-zone-select-combined" style={fieldLabelStyle}>
+                      Select ATEX Gas Zone
+                    </label>
 
-                <UsComparisonCard
-                  title="Nearest US Dust Equivalent"
-                  mappedUS={mappedDustUS}
-                  mapping={dustMapping}
-                />
-              </div>
+                    <select
+                      id="gas-zone-select-combined"
+                      value={selectedGasZoneId}
+                      onChange={(event) => setSelectedGasZoneId(event.target.value)}
+                      style={selectStyle}
+                    >
+                      {gasZones.map((zone) => (
+                        <option key={zone.id} value={zone.id}>
+                          ATEX Zone {zone.zone} – GAS
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              <div style={panelStyle}>
-                <h3 style={{ marginTop: 0 }}>Combined Gas + Dust Considerations</h3>
-                <ul style={{ paddingLeft: "20px", lineHeight: 1.7, marginBottom: 0 }}>
-                  <li>
-                    Equipment may need suitable certification and marking for both gas and dust
-                    hazards.
-                  </li>
-                  <li>
-                    Do not assume gas-certified equipment is automatically suitable for dust
-                    service.
-                  </li>
-                  <li>
-                    Check gas group, dust group, and temperature or maximum surface temperature
-                    requirements separately.
-                  </li>
-                  <li>
-                    Final equipment suitability depends on the full equipment marking,
-                    installation method, and site basis of safety.
-                  </li>
-                  <li>
-                    Where both gas and dust risks exist, the final selection may need to satisfy
-                    the more onerous requirements from each hazard family.
-                  </li>
-                </ul>
-              </div>
-            </>
-          )}
-        </>
-      )}
+                  <div style={softPanelStyle}>
+                    <label htmlFor="dust-zone-select-combined" style={fieldLabelStyle}>
+                      Select ATEX Dust Zone
+                    </label>
 
-      {mainTab === "marking" && (
-        <MarkingInterpreter marking={equipmentMarking} setMarking={setEquipmentMarking} />
-      )}
+                    <select
+                      id="dust-zone-select-combined"
+                      value={selectedDustZoneId}
+                      onChange={(event) => setSelectedDustZoneId(event.target.value)}
+                      style={selectStyle}
+                    >
+                      {dustZones.map((zone) => (
+                        <option key={zone.id} value={zone.id}>
+                          ATEX Zone {zone.zone} – DUST
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
-      {mainTab === "zone" && (
-        <>
-          <div style={{ ...panelStyle, marginBottom: "20px" }}>
-            <h2 style={sectionTitleStyle}>Zone Suitability</h2>
-            <p style={sectionIntroStyle}>
-              Use the entered marking below as the basis for the suitability check.
-            </p>
+                <div style={gridStyle}>
+                  <AtexCard title="ATEX / IECEx Gas" selectedZone={selectedGasZone} />
+                  <AtexCard title="ATEX / IECEx Dust" selectedZone={selectedDustZone} />
+                </div>
 
-            <label htmlFor="shared-marking-input" style={fieldLabelStyle}>
-              Equipment Marking
-            </label>
+                <div style={gridStyle}>
+                  <UsComparisonCard
+                    title="Nearest US Gas Equivalent"
+                    mappedUS={mappedGasUS}
+                    mapping={gasMapping}
+                  />
 
-            <input
-              id="shared-marking-input"
-              type="text"
-              value={equipmentMarking}
-              onChange={(event) => setEquipmentMarking(event.target.value)}
-              style={{ ...inputStyle, maxWidth: "720px" }}
+                  <UsComparisonCard
+                    title="Nearest US Dust Equivalent"
+                    mappedUS={mappedDustUS}
+                    mapping={dustMapping}
+                  />
+                </div>
+
+                <div style={softPanelStyle}>
+                  <h3 style={{ marginTop: 0, marginBottom: "10px", color: "#12263f" }}>
+                    Combined Gas + Dust Considerations
+                  </h3>
+                  <ul style={{ paddingLeft: "20px", lineHeight: 1.8, marginBottom: 0 }}>
+                    <li>
+                      Equipment may need suitable certification and marking for both gas
+                      and dust hazards.
+                    </li>
+                    <li>
+                      Do not assume gas-certified equipment is automatically suitable for
+                      dust service.
+                    </li>
+                    <li>
+                      Check gas group, dust group, and temperature or maximum surface
+                      temperature requirements separately.
+                    </li>
+                    <li>
+                      Final equipment suitability depends on the full equipment marking,
+                      installation method, and site basis of safety.
+                    </li>
+                    <li>
+                      Where both gas and dust risks exist, the final selection may need to
+                      satisfy the more onerous requirements from each hazard family.
+                    </li>
+                  </ul>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {mainTab === "marking" && (
+          <div style={contentSectionStyle}>
+            <div style={softPanelStyle}>
+              <h2 style={sectionTitleStyle}>Equipment Marking Interpreter</h2>
+              <p style={sectionIntroStyle}>
+                Break down the marking into recognisable engineering elements and review
+                how the certificate wording maps to practical selection decisions.
+              </p>
+            </div>
+
+            <MarkingInterpreter
+              marking={equipmentMarking}
+              setMarking={setEquipmentMarking}
             />
           </div>
+        )}
 
-          <ZoneSuitabilityCard marking={equipmentMarking} />
-        </>
-      )}
+        {mainTab === "zone" && (
+          <div style={contentSectionStyle}>
+            <div style={softPanelStyle}>
+              <h2 style={sectionTitleStyle}>Zone Suitability</h2>
+              <p style={sectionIntroStyle}>
+                Use the entered marking below as the basis for the suitability check.
+              </p>
 
-      {mainTab === "temperature" && <TemperatureClassTool marking={equipmentMarking} />}
+              <label htmlFor="shared-marking-input" style={fieldLabelStyle}>
+                Equipment Marking
+              </label>
+
+              <input
+                id="shared-marking-input"
+                type="text"
+                value={equipmentMarking}
+                onChange={(event) => setEquipmentMarking(event.target.value)}
+                style={{ ...inputStyle, maxWidth: "760px" }}
+              />
+            </div>
+
+            <ZoneSuitabilityCard marking={equipmentMarking} />
+          </div>
+        )}
+
+        {mainTab === "temperature" && (
+          <div style={contentSectionStyle}>
+            <div style={softPanelStyle}>
+              <h2 style={sectionTitleStyle}>Temperature Class</h2>
+              <p style={sectionIntroStyle}>
+                Check whether the entered T-class is suitable for the gas
+                auto-ignition temperature and review the expected temperature limit.
+              </p>
+            </div>
+
+            <TemperatureClassTool marking={equipmentMarking} />
+          </div>
+        )}
+      </div>
     </div>
   )
 }

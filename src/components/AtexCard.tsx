@@ -23,6 +23,7 @@ function getZoneBadgeStyle(zone: ZoneRecord["zone"]) {
       color: "#b42318",
       border: "1px solid #f5b5b5",
       label: "Continuous hazard",
+      icon: "🔴",
     }
   }
 
@@ -32,6 +33,7 @@ function getZoneBadgeStyle(zone: ZoneRecord["zone"]) {
       color: "#b45309",
       border: "1px solid #f2c27f",
       label: "Likely hazard",
+      icon: "🟠",
     }
   }
 
@@ -40,6 +42,17 @@ function getZoneBadgeStyle(zone: ZoneRecord["zone"]) {
     color: "#1f7a3d",
     border: "1px solid #b7e3c3",
     label: "Infrequent hazard",
+    icon: "🟢",
+  }
+}
+
+function sectionCardStyle(): React.CSSProperties {
+  return {
+    marginTop: "18px",
+    padding: "14px 16px",
+    borderRadius: "12px",
+    backgroundColor: "#f8fafc",
+    border: "1px solid #e2e8f0",
   }
 }
 
@@ -61,7 +74,7 @@ function AtexCard({ title, selectedZone }: AtexCardProps) {
         boxShadow: "0 6px 18px rgba(15, 23, 42, 0.06)",
       }}
     >
-      <h3 style={{ marginTop: 0, marginBottom: "14px" }}>{title}</h3>
+      <h3 style={{ marginTop: 0, marginBottom: "14px", color: "#12263f" }}>{title}</h3>
 
       <div
         style={{
@@ -75,12 +88,13 @@ function AtexCard({ title, selectedZone }: AtexCardProps) {
           ...badgeStyle,
         }}
       >
+        <span>{badgeStyle.icon}</span>
         <span>Zone {selectedZone.zone}</span>
-        <span style={{ opacity: 0.8 }}>•</span>
+        <span style={{ opacity: 0.65 }}>•</span>
         <span>{badgeStyle.label}</span>
       </div>
 
-      <div style={{ display: "grid", gap: "12px" }}>
+      <div style={{ display: "grid", gap: "12px", color: "#334155" }}>
         <p style={{ margin: 0 }}>
           <strong>Hazard Family:</strong> {selectedZone.hazardFamily}
         </p>
@@ -102,19 +116,11 @@ function AtexCard({ title, selectedZone }: AtexCardProps) {
         </p>
       </div>
 
-      <div
-        style={{
-          marginTop: "18px",
-          padding: "14px 16px",
-          borderRadius: "12px",
-          backgroundColor: "#f8fafc",
-          border: "1px solid #e2e8f0",
-        }}
-      >
-        <strong>Typical Equipment Marking Expectation</strong>
+      <div style={sectionCardStyle()}>
+        <strong style={{ color: "#12263f" }}>Typical Equipment Marking Expectation</strong>
 
         {selectedZone.hazardFamily === "gas" && (
-          <ul style={{ marginBottom: 0, lineHeight: 1.7 }}>
+          <ul style={{ marginBottom: 0, lineHeight: 1.8, marginTop: "10px" }}>
             <li>Group II equipment for surface industries</li>
             <li>Category {selectedZone.minimumCategory}</li>
             <li>
@@ -127,7 +133,7 @@ function AtexCard({ title, selectedZone }: AtexCardProps) {
         )}
 
         {selectedZone.hazardFamily === "dust" && (
-          <ul style={{ marginBottom: 0, lineHeight: 1.7 }}>
+          <ul style={{ marginBottom: 0, lineHeight: 1.8, marginTop: "10px" }}>
             <li>Group II equipment for surface industries</li>
             <li>Category {selectedZone.minimumCategory}</li>
             <li>
@@ -140,18 +146,18 @@ function AtexCard({ title, selectedZone }: AtexCardProps) {
         )}
       </div>
 
-      <div style={{ marginTop: "18px" }}>
-        <strong>Common Protection Types</strong>
-        <ul style={{ lineHeight: 1.7, marginBottom: 0 }}>
+      <div style={sectionCardStyle()}>
+        <strong style={{ color: "#12263f" }}>Common Protection Types</strong>
+        <ul style={{ lineHeight: 1.8, marginBottom: 0, marginTop: "10px" }}>
           {selectedZone.commonProtectionTypes.map((protectionType) => (
             <li key={protectionType}>{protectionType}</li>
           ))}
         </ul>
       </div>
 
-      <div style={{ marginTop: "18px" }}>
-        <strong>Notes</strong>
-        <ul style={{ lineHeight: 1.7, marginBottom: 0 }}>
+      <div style={sectionCardStyle()}>
+        <strong style={{ color: "#12263f" }}>Notes</strong>
+        <ul style={{ lineHeight: 1.8, marginBottom: 0, marginTop: "10px" }}>
           {selectedZone.notes.map((note) => (
             <li key={note}>{note}</li>
           ))}
