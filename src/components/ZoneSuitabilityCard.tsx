@@ -9,6 +9,7 @@ type ZoneSuitabilityCardProps = {
 }
 
 type Epl = "Ga" | "Gb" | "Gc" | "Da" | "Db" | "Dc"
+type BasisSource = "epl" | "category" | "protection" | "none"
 
 function getZoneBadgeStyle(zone: string) {
   if (zone === "0" || zone === "20") {
@@ -48,6 +49,12 @@ function extractCategory(marking: string): string | null {
   return match ? match[1].toUpperCase() : null
 }
 
+function extractProtectionConcepts(marking: string): string[] {
+  const matches = marking.match(/\b(ia|ib|ic)\b/gi)
+  if (!matches) return []
+  return matches.map((m) => m.toLowerCase())
+}
+
 function getAllowedZonesFromEpl(epl: Epl): string[] {
   switch (epl) {
     case "Ga":
@@ -84,9 +91,23 @@ function getAllowedZonesFromCategory(category: string): string[] {
   }
 }
 
+function getAllowedZonesFromProtection(concept: string): string[] {
+  switch (concept) {
+    case "ia":
+      return ["0", "1", "2"]
+    case "ib":
+      return ["1", "2"]
+    case "ic":
+      return ["2"]
+    default:
+      return []
+  }
+}
+
 function getBestBasis(marking: string, atmosphere: AtmosphereType) {
   const epls = extractEpls(marking)
   const category = extractCategory(marking)
+  const protectionConcepts = extractProtectionConcepts(marking)
 
   const relevantEpls =
     atmosphere === "gas"
@@ -94,14 +115,30 @@ function getBestBasis(marking: string, atmosphere: AtmosphereType) {
       : epls.filter((epl) => epl.startsWith("D"))
 
   if (relevantEpls.length > 0) {
-    const mergedAllowedZones = Array.from(
+    const allowedZones = Array.from(
       new Set(relevantEpls.flatMap((epl) => getAllowedZonesFromEpl(epl)))
     )
 
     return {
-      source: "epl" as const,
+      source: "epl" as BasisSource,
       tokens: relevantEpls,
-      allowedZones: mergedAllowedZones,
+      allowedZones,
+    }
+  }
+
+  if (atmosphere === "gas" && protectionConcepts.length > 0) {
+    const allowedZones = Array.from(
+      new Set(
+        protectionConcepts.flatMap((concept) =>
+          getAllowedZonesFromProtection(concept)
+        )
+      )
+    )
+
+    return {
+      source: "protection" as BasisSource,
+      tokens: protectionConcepts,
+      allowedZones,
     }
   }
 
@@ -111,14 +148,14 @@ function getBestBasis(marking: string, atmosphere: AtmosphereType) {
       (atmosphere === "dust" && category.endsWith("D")))
   ) {
     return {
-      source: "category" as const,
+      source: "category" as BasisSource,
       tokens: [category],
       allowedZones: getAllowedZonesFromCategory(category),
     }
   }
 
   return {
-    source: "none" as const,
+    source: "none" as BasisSource,
     tokens: [],
     allowedZones: [],
   }
@@ -139,7 +176,7 @@ function ZoneSuitabilityCard({ marking }: ZoneSuitabilityCardProps) {
       return {
         status: "warning" as const,
         title: "Enter an equipment marking first.",
-        body: "A suitability check needs a full equipment marking so the dashboard can look for EPL or category information.",
+        body: "A suitability check needs a full equipment marking so the dashboard can look for EPL, category, or protection concept information.",
       }
     }
 
@@ -151,7 +188,7 @@ function ZoneSuitabilityCard({ marking }: ZoneSuitabilityCardProps) {
         title: "No usable zone suitability token found.",
         body:
           atmosphere === "gas"
-            ? "The marking does not include a recognised gas EPL (Ga, Gb, Gc) or gas category (1G, 2G, 3G)."
+            ? "The marking does not include a recognised gas EPL (Ga, Gb, Gc), gas category (1G, 2G, 3G), or intrinsic safety protection concept (ia, ib, ic)."
             : "The marking does not include a recognised dust EPL (Da, Db, Dc) or dust category (1D, 2D, 3D).",
       }
     }
@@ -159,37 +196,51 @@ function ZoneSuitabilityCard({ marking }: ZoneSuitabilityCardProps) {
     const isSuitable = basis.allowedZones.includes(selectedZone)
 
     if (isSuitable) {
+      if (basis.source === "epl") {
+        return {
+          status: "pass" as const,
+          title: "✓ Suitable",
+          body: `The marking includes ${basis.tokens.join(", ")}, which permits use in Zone ${basis.allowedZones.join(", ")} for ${atmosphere} atmospheres. Zone ${selectedZone} is within that range.`,
+        }
+      }
+
+      if (basis.source === "protection") {
+        return {
+          status: "pass" as const,
+          title: "✓ Suitable",
+          body: `The marking includes protection concept ${basis.tokens.join(", ")}, which permits use in Zone ${basis.allowedZones.join(", ")} for gas atmospheres. Zone ${selectedZone} is within that range.`,
+        }
+      }
+
       return {
         status: "pass" as const,
         title: "✓ Suitable",
-        body:
-          basis.source === "epl"
-            ? `The marking includes ${basis.tokens.join(
-                ", "
-              )}, which permits use in Zone ${basis.allowedZones.join(
-                ", "
-              )} for ${atmosphere} atmospheres. Zone ${selectedZone} is within that range.`
-            : `The marking includes category ${basis.tokens[0]}, which permits use in Zone ${basis.allowedZones.join(
-                ", "
-              )} for ${atmosphere} atmospheres. Zone ${selectedZone} is within that range.`,
+        body: `The marking includes category ${basis.tokens[0]}, which permits use in Zone ${basis.allowedZones.join(", ")} for ${atmosphere} atmospheres. Zone ${selectedZone} is within that range.`,
+      }
+    }
+
+    if (basis.source === "epl") {
+      return {
+        status: "fail" as const,
+        title: "✖ Not Suitable",
+        body: `The marking includes ${basis.tokens.join(", ")}, which only permits use in Zone ${basis.allowedZones.join(", ")} for ${atmosphere} atmospheres. Zone ${selectedZone} is more onerous than that requirement allows.`,
+      }
+    }
+
+    if (basis.source === "protection") {
+      return {
+        status: "fail" as const,
+        title: "✖ Not Suitable",
+        body: `The marking includes protection concept ${basis.tokens.join(", ")}, which only permits use in Zone ${basis.allowedZones.join(", ")} for gas atmospheres. Zone ${selectedZone} is more onerous than that requirement allows.`,
       }
     }
 
     return {
       status: "fail" as const,
       title: "✖ Not Suitable",
-      body:
-        basis.source === "epl"
-          ? `The marking includes ${basis.tokens.join(
-              ", "
-            )}, which only permits use in Zone ${basis.allowedZones.join(
-              ", "
-            )} for ${atmosphere} atmospheres. Zone ${selectedZone} is more onerous than that requirement allows.`
-          : `The marking includes category ${basis.tokens[0]}, which only permits use in Zone ${basis.allowedZones.join(
-              ", "
-            )} for ${atmosphere} atmospheres. Zone ${selectedZone} is more onerous than that requirement allows.`,
+      body: `The marking includes category ${basis.tokens[0]}, which only permits use in Zone ${basis.allowedZones.join(", ")} for ${atmosphere} atmospheres. Zone ${selectedZone} is more onerous than that requirement allows.`,
     }
-  }, [atmosphere, dustZone, gasZone, marking, selectedZone])
+  }, [atmosphere, marking, selectedZone])
 
   const resultStyle: Record<"pass" | "fail" | "warning", React.CSSProperties> = {
     pass: {
@@ -369,6 +420,9 @@ function ZoneSuitabilityCard({ marking }: ZoneSuitabilityCardProps) {
           <li>Da → Zone 20, 21, 22</li>
           <li>Db → Zone 21, 22</li>
           <li>Dc → Zone 22</li>
+          <li>ia → Zone 0, 1, 2</li>
+          <li>ib → Zone 1, 2</li>
+          <li>ic → Zone 2</li>
         </ul>
       </div>
     </div>
