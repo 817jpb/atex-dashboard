@@ -7,6 +7,8 @@ import AtexCard from "./components/AtexCard"
 import UsComparisonCard from "./components/USComparisonCard"
 import MarkingInterpreter from "./components/MarkingInterpreter"
 import ZoneSuitabilityCard from "./components/ZoneSuitabilityCard"
+import SubstanceHelper from "./components/SubstanceHelper"
+import { substances } from "./data/substances"
 
 type HazardMode = "gas" | "dust" | "gas-dust"
 type MainTab = "overview" | "marking" | "zone" | "temperature"
@@ -199,11 +201,17 @@ function getMarkingTClass(marking: string): TemperatureClass | null {
 
 function TemperatureClassTool({
   marking,
+  gasType,
+  setGasType,
+  autoIgnitionTemp,
+  setAutoIgnitionTemp,
 }: {
   marking: string
+  gasType: string
+  setGasType: (value: string) => void
+  autoIgnitionTemp: string
+  setAutoIgnitionTemp: (value: string) => void
 }) {
-  const [gasType, setGasType] = useState("Hydrogen")
-  const [autoIgnitionTemp, setAutoIgnitionTemp] = useState("560")
 
   const parsedTemp = Number(autoIgnitionTemp)
 
@@ -363,6 +371,20 @@ function App() {
   const [selectedGasZoneId, setSelectedGasZoneId] = useState(gasZones[0].id)
   const [selectedDustZoneId, setSelectedDustZoneId] = useState(dustZones[0].id)
   const [equipmentMarking, setEquipmentMarking] = useState("II 2G Ex db eb IIC T4 Gb")
+
+  const handleSubstanceChange = (name: string) => {
+  setSelectedSubstance(name)
+
+  const substance = substances.find((s) => s.name === name)
+  if (!substance) return
+
+  setGasType(substance.name)
+  setAutoIgnitionTemp(String(substance.autoIgnition))
+}
+
+  const [selectedSubstance, setSelectedSubstance] = useState("Hydrogen")
+  const [gasType, setGasType] = useState("Hydrogen")
+  const [autoIgnitionTemp, setAutoIgnitionTemp] = useState("560")
 
   const selectedGasZone = gasZones.find((zone) => zone.id === selectedGasZoneId)
   const selectedDustZone = dustZones.find((zone) => zone.id === selectedDustZoneId)
@@ -708,18 +730,29 @@ function App() {
         )}
 
         {mainTab === "temperature" && (
-          <div style={contentSectionStyle}>
-            <div style={softPanelStyle}>
-              <h2 style={sectionTitleStyle}>Temperature Class</h2>
-              <p style={sectionIntroStyle}>
-                Check whether the entered T-class is suitable for the gas
-                auto-ignition temperature and review the expected temperature limit.
-              </p>
-            </div>
+  <div style={contentSectionStyle}>
+    <div style={softPanelStyle}>
+      <h2 style={sectionTitleStyle}>Temperature Class</h2>
+      <p style={sectionIntroStyle}>
+        Check whether the entered T-class is suitable for the gas
+        auto-ignition temperature and review the expected temperature limit.
+      </p>
+    </div>
 
-            <TemperatureClassTool marking={equipmentMarking} />
-          </div>
-        )}
+    <TemperatureClassTool
+  marking={equipmentMarking}
+  gasType={gasType}
+  setGasType={setGasType}
+  autoIgnitionTemp={autoIgnitionTemp}
+  setAutoIgnitionTemp={setAutoIgnitionTemp}
+/>
+
+<SubstanceHelper
+  selectedSubstance={selectedSubstance}
+  onSubstanceChange={handleSubstanceChange}
+/>
+  </div>
+)}
       </div>
     </div>
   )
