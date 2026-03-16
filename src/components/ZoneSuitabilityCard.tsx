@@ -104,6 +104,64 @@ function getAllowedZonesFromProtection(concept: string): string[] {
   }
 }
 
+function getRequiredLevelForZone(atmosphere: AtmosphereType, zone: string) {
+  if (atmosphere === "gas") {
+    switch (zone) {
+      case "0":
+        return {
+          preferredBasis: "Ga / 1G / ia",
+          explanation: "Zone 0 gas areas normally require the highest level of protection.",
+        }
+      case "1":
+        return {
+          preferredBasis: "Gb / 2G / ib",
+          explanation: "Zone 1 gas areas require high protection suitable for likely hazardous atmospheres in normal operation.",
+        }
+      default:
+        return {
+          preferredBasis: "Gc / 3G / ic",
+          explanation: "Zone 2 gas areas allow equipment intended for infrequent hazardous atmospheres.",
+        }
+    }
+  }
+
+  switch (zone) {
+    case "20":
+      return {
+        preferredBasis: "Da / 1D",
+        explanation: "Zone 20 dust areas normally require the highest level of dust protection.",
+      }
+    case "21":
+      return {
+        preferredBasis: "Db / 2D",
+        explanation: "Zone 21 dust areas require high protection for likely hazardous dust atmospheres.",
+      }
+    default:
+      return {
+        preferredBasis: "Dc / 3D",
+        explanation: "Zone 22 dust areas allow equipment intended for infrequent hazardous dust atmospheres.",
+      }
+  }
+}
+
+function describeBasis(source: BasisSource, tokens: string[], atmosphere: AtmosphereType) {
+  if (source === "epl") {
+    return `The marking provides EPL ${tokens.join(", ")} for ${atmosphere} atmospheres.`
+  }
+
+  if (source === "protection") {
+    return `The marking provides intrinsic safety protection concept ${tokens.join(
+      ", "
+    )} for gas atmospheres.`
+  }
+
+  if (source === "category") {
+    return `The marking provides ATEX category ${tokens[0]} for ${atmosphere} atmospheres.`
+  }
+
+  return "No recognised suitability basis was found in the marking."
+}
+
 function getBestBasis(marking: string, atmosphere: AtmosphereType) {
   const epls = extractEpls(marking)
   const category = extractCategory(marking)
@@ -171,12 +229,14 @@ function ZoneSuitabilityCard({ marking }: ZoneSuitabilityCardProps) {
 
   const result = useMemo(() => {
     const trimmedMarking = marking.trim()
+    const requiredLevel = getRequiredLevelForZone(atmosphere, selectedZone)
 
     if (!trimmedMarking) {
       return {
         status: "warning" as const,
         title: "Enter an equipment marking first.",
         body: "A suitability check needs a full equipment marking so the dashboard can look for EPL, category, or protection concept information.",
+        requirement: `Zone ${selectedZone} typically expects ${requiredLevel.preferredBasis}. ${requiredLevel.explanation}`,
       }
     }
 
@@ -190,55 +250,31 @@ function ZoneSuitabilityCard({ marking }: ZoneSuitabilityCardProps) {
           atmosphere === "gas"
             ? "The marking does not include a recognised gas EPL (Ga, Gb, Gc), gas category (1G, 2G, 3G), or intrinsic safety protection concept (ia, ib, ic)."
             : "The marking does not include a recognised dust EPL (Da, Db, Dc) or dust category (1D, 2D, 3D).",
+        requirement: `Zone ${selectedZone} typically expects ${requiredLevel.preferredBasis}. ${requiredLevel.explanation}`,
       }
     }
 
     const isSuitable = basis.allowedZones.includes(selectedZone)
+    const basisDescription = describeBasis(basis.source, basis.tokens, atmosphere)
 
     if (isSuitable) {
-      if (basis.source === "epl") {
-        return {
-          status: "pass" as const,
-          title: "✓ Suitable",
-          body: `The marking includes ${basis.tokens.join(", ")}, which permits use in Zone ${basis.allowedZones.join(", ")} for ${atmosphere} atmospheres. Zone ${selectedZone} is within that range.`,
-        }
-      }
-
-      if (basis.source === "protection") {
-        return {
-          status: "pass" as const,
-          title: "✓ Suitable",
-          body: `The marking includes protection concept ${basis.tokens.join(", ")}, which permits use in Zone ${basis.allowedZones.join(", ")} for gas atmospheres. Zone ${selectedZone} is within that range.`,
-        }
-      }
-
       return {
         status: "pass" as const,
         title: "✓ Suitable",
-        body: `The marking includes category ${basis.tokens[0]}, which permits use in Zone ${basis.allowedZones.join(", ")} for ${atmosphere} atmospheres. Zone ${selectedZone} is within that range.`,
-      }
-    }
-
-    if (basis.source === "epl") {
-      return {
-        status: "fail" as const,
-        title: "✖ Not Suitable",
-        body: `The marking includes ${basis.tokens.join(", ")}, which only permits use in Zone ${basis.allowedZones.join(", ")} for ${atmosphere} atmospheres. Zone ${selectedZone} is more onerous than that requirement allows.`,
-      }
-    }
-
-    if (basis.source === "protection") {
-      return {
-        status: "fail" as const,
-        title: "✖ Not Suitable",
-        body: `The marking includes protection concept ${basis.tokens.join(", ")}, which only permits use in Zone ${basis.allowedZones.join(", ")} for gas atmospheres. Zone ${selectedZone} is more onerous than that requirement allows.`,
+        body: `${basisDescription} It is suitable for Zone ${basis.allowedZones.join(
+          ", "
+        )}. Zone ${selectedZone} is included, so this marking is acceptable on the rule-of-thumb basis used here.`,
+        requirement: `Zone ${selectedZone} typically expects ${requiredLevel.preferredBasis}. ${requiredLevel.explanation}`,
       }
     }
 
     return {
       status: "fail" as const,
       title: "✖ Not Suitable",
-      body: `The marking includes category ${basis.tokens[0]}, which only permits use in Zone ${basis.allowedZones.join(", ")} for ${atmosphere} atmospheres. Zone ${selectedZone} is more onerous than that requirement allows.`,
+      body: `${basisDescription} It is only suitable for Zone ${basis.allowedZones.join(
+        ", "
+      )}. Zone ${selectedZone} is more onerous than that, so this marking does not meet the rule-of-thumb requirement.`,
+      requirement: `Zone ${selectedZone} typically expects ${requiredLevel.preferredBasis}. ${requiredLevel.explanation}`,
     }
   }, [atmosphere, marking, selectedZone])
 
@@ -389,6 +425,20 @@ function ZoneSuitabilityCard({ marking }: ZoneSuitabilityCardProps) {
         <div style={{ marginTop: "8px", fontFamily: "monospace", fontSize: "15px" }}>
           {marking || "No marking entered"}
         </div>
+      </div>
+
+      <div
+        style={{
+          marginBottom: "18px",
+          padding: "14px 16px",
+          borderRadius: "12px",
+          backgroundColor: "#f8fafc",
+          border: "1px solid #e2e8f0",
+          lineHeight: 1.6,
+        }}
+      >
+        <strong>Zone requirement:</strong>
+        <div style={{ marginTop: "8px" }}>{result.requirement}</div>
       </div>
 
       <div
