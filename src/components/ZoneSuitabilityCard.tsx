@@ -1,139 +1,378 @@
-import React from "react"
-import { determineAtexZonesFromMarking } from "../data/atexZoneRules"
+import { useMemo, useState } from "react"
 
-type Props = {
+type AtmosphereType = "gas" | "dust"
+type GasZone = "0" | "1" | "2"
+type DustZone = "20" | "21" | "22"
+
+type ZoneSuitabilityCardProps = {
   marking: string
 }
 
-function ZoneBadge({ children }: { children: React.ReactNode }) {
-  return (
-    <span
-      style={{
-        display: "inline-block",
-        padding: "8px 14px",
-        marginRight: "10px",
-        marginBottom: "10px",
-        borderRadius: "20px",
-        backgroundColor: "#d9f7e8",
-        border: "1px solid #7ed4a5",
-        fontWeight: 600,
-        fontSize: "14px",
-      }}
-    >
-      {children}
-    </span>
-  )
+type Epl = "Ga" | "Gb" | "Gc" | "Da" | "Db" | "Dc"
+
+function getZoneBadgeStyle(zone: string) {
+  if (zone === "0" || zone === "20") {
+    return {
+      backgroundColor: "#fde8e8",
+      color: "#b42318",
+      border: "1px solid #f5b5b5",
+      label: "Continuous hazard",
+    }
+  }
+
+  if (zone === "1" || zone === "21") {
+    return {
+      backgroundColor: "#fff3e0",
+      color: "#b45309",
+      border: "1px solid #f2c27f",
+      label: "Likely hazard",
+    }
+  }
+
+  return {
+    backgroundColor: "#eafaf0",
+    color: "#1f7a3d",
+    border: "1px solid #b7e3c3",
+    label: "Infrequent hazard",
+  }
 }
 
-export default function ZoneSuitabilityCard({ marking }: Props) {
-  const result = determineAtexZonesFromMarking(marking)
+function extractEpls(marking: string): Epl[] {
+  const matches = marking.match(/\b(Ga|Gb|Gc|Da|Db|Dc)\b/g)
+  if (!matches) return []
+  return matches as Epl[]
+}
 
-  const hasGas = result.gas.length > 0
-  const hasDust = result.dust.length > 0
+function extractCategory(marking: string): string | null {
+  const match = marking.match(/\b(1G|2G|3G|1D|2D|3D)\b/i)
+  return match ? match[1].toUpperCase() : null
+}
+
+function getAllowedZonesFromEpl(epl: Epl): string[] {
+  switch (epl) {
+    case "Ga":
+      return ["0", "1", "2"]
+    case "Gb":
+      return ["1", "2"]
+    case "Gc":
+      return ["2"]
+    case "Da":
+      return ["20", "21", "22"]
+    case "Db":
+      return ["21", "22"]
+    case "Dc":
+      return ["22"]
+  }
+}
+
+function getAllowedZonesFromCategory(category: string): string[] {
+  switch (category) {
+    case "1G":
+      return ["0", "1", "2"]
+    case "2G":
+      return ["1", "2"]
+    case "3G":
+      return ["2"]
+    case "1D":
+      return ["20", "21", "22"]
+    case "2D":
+      return ["21", "22"]
+    case "3D":
+      return ["22"]
+    default:
+      return []
+  }
+}
+
+function getBestBasis(marking: string, atmosphere: AtmosphereType) {
+  const epls = extractEpls(marking)
+  const category = extractCategory(marking)
+
+  const relevantEpls =
+    atmosphere === "gas"
+      ? epls.filter((epl) => epl.startsWith("G"))
+      : epls.filter((epl) => epl.startsWith("D"))
+
+  if (relevantEpls.length > 0) {
+    const mergedAllowedZones = Array.from(
+      new Set(relevantEpls.flatMap((epl) => getAllowedZonesFromEpl(epl)))
+    )
+
+    return {
+      source: "epl" as const,
+      tokens: relevantEpls,
+      allowedZones: mergedAllowedZones,
+    }
+  }
+
+  if (
+    category &&
+    ((atmosphere === "gas" && category.endsWith("G")) ||
+      (atmosphere === "dust" && category.endsWith("D")))
+  ) {
+    return {
+      source: "category" as const,
+      tokens: [category],
+      allowedZones: getAllowedZonesFromCategory(category),
+    }
+  }
+
+  return {
+    source: "none" as const,
+    tokens: [],
+    allowedZones: [],
+  }
+}
+
+function ZoneSuitabilityCard({ marking }: ZoneSuitabilityCardProps) {
+  const [atmosphere, setAtmosphere] = useState<AtmosphereType>("gas")
+  const [gasZone, setGasZone] = useState<GasZone>("1")
+  const [dustZone, setDustZone] = useState<DustZone>("21")
+
+  const selectedZone = atmosphere === "gas" ? gasZone : dustZone
+  const zoneBadgeStyle = getZoneBadgeStyle(selectedZone)
+
+  const result = useMemo(() => {
+    const trimmedMarking = marking.trim()
+
+    if (!trimmedMarking) {
+      return {
+        status: "warning" as const,
+        title: "Enter an equipment marking first.",
+        body: "A suitability check needs a full equipment marking so the dashboard can look for EPL or category information.",
+      }
+    }
+
+    const basis = getBestBasis(trimmedMarking, atmosphere)
+
+    if (basis.source === "none") {
+      return {
+        status: "warning" as const,
+        title: "No usable zone suitability token found.",
+        body:
+          atmosphere === "gas"
+            ? "The marking does not include a recognised gas EPL (Ga, Gb, Gc) or gas category (1G, 2G, 3G)."
+            : "The marking does not include a recognised dust EPL (Da, Db, Dc) or dust category (1D, 2D, 3D).",
+      }
+    }
+
+    const isSuitable = basis.allowedZones.includes(selectedZone)
+
+    if (isSuitable) {
+      return {
+        status: "pass" as const,
+        title: "✓ Suitable",
+        body:
+          basis.source === "epl"
+            ? `The marking includes ${basis.tokens.join(
+                ", "
+              )}, which permits use in Zone ${basis.allowedZones.join(
+                ", "
+              )} for ${atmosphere} atmospheres. Zone ${selectedZone} is within that range.`
+            : `The marking includes category ${basis.tokens[0]}, which permits use in Zone ${basis.allowedZones.join(
+                ", "
+              )} for ${atmosphere} atmospheres. Zone ${selectedZone} is within that range.`,
+      }
+    }
+
+    return {
+      status: "fail" as const,
+      title: "✖ Not Suitable",
+      body:
+        basis.source === "epl"
+          ? `The marking includes ${basis.tokens.join(
+              ", "
+            )}, which only permits use in Zone ${basis.allowedZones.join(
+              ", "
+            )} for ${atmosphere} atmospheres. Zone ${selectedZone} is more onerous than that requirement allows.`
+          : `The marking includes category ${basis.tokens[0]}, which only permits use in Zone ${basis.allowedZones.join(
+              ", "
+            )} for ${atmosphere} atmospheres. Zone ${selectedZone} is more onerous than that requirement allows.`,
+    }
+  }, [atmosphere, dustZone, gasZone, marking, selectedZone])
+
+  const resultStyle: Record<"pass" | "fail" | "warning", React.CSSProperties> = {
+    pass: {
+      border: "1px solid #b7ebc6",
+      backgroundColor: "#effcf3",
+      color: "#185c37",
+    },
+    fail: {
+      border: "1px solid #f3b3b3",
+      backgroundColor: "#fff1f1",
+      color: "#9f1d1d",
+    },
+    warning: {
+      border: "1px solid #f4d39c",
+      backgroundColor: "#fff8eb",
+      color: "#8a5a00",
+    },
+  }
 
   return (
     <div
       style={{
-        border: "1px solid #ccc",
-        borderRadius: "12px",
-        padding: "22px",
-        backgroundColor: "#f6f9ff",
+        border: "1px solid #d8dee8",
+        borderRadius: "16px",
+        padding: "20px",
+        backgroundColor: "#ffffff",
         textAlign: "left",
-        marginTop: "28px",
+        boxShadow: "0 6px 18px rgba(15, 23, 42, 0.06)",
       }}
     >
-      <h2 style={{ marginBottom: "12px" }}>Permitted ATEX Zones</h2>
+      <h2 style={{ marginTop: 0, marginBottom: "8px" }}>Zone Suitability Checker</h2>
 
-      <p style={{ marginBottom: "18px", color: "#444" }}>
-        Determined from equipment category and EPL contained in the marking.
+      <p style={{ marginTop: 0, marginBottom: "20px", color: "#5b6472", lineHeight: 1.6 }}>
+        Check whether the entered equipment marking is suitable for the selected installation zone.
       </p>
-
-      {/* Gas Zones */}
-      {hasGas && (
-        <div style={{ marginBottom: "20px" }}>
-          <h3 style={{ marginBottom: "10px" }}>Gas Atmosphere</h3>
-
-          <div style={{ marginBottom: "10px" }}>
-            {result.gas.map((zone) => (
-              <ZoneBadge key={zone}>{zone}</ZoneBadge>
-            ))}
-          </div>
-
-          <div style={{ fontSize: "13px", color: "#666" }}>
-            Category: {result.matched.gasCategory ?? "—"} | EPL:{" "}
-            {result.matched.gasEpl ?? "—"}
-          </div>
-        </div>
-      )}
-
-      {/* Dust Zones */}
-      {hasDust && (
-        <div style={{ marginBottom: "20px" }}>
-          <h3 style={{ marginBottom: "10px" }}>Dust Atmosphere</h3>
-
-          <div style={{ marginBottom: "10px" }}>
-            {result.dust.map((zone) => (
-              <ZoneBadge key={zone}>{zone}</ZoneBadge>
-            ))}
-          </div>
-
-          <div style={{ fontSize: "13px", color: "#666" }}>
-            Category: {result.matched.dustCategory ?? "—"} | EPL:{" "}
-            {result.matched.dustEpl ?? "—"}
-          </div>
-        </div>
-      )}
-
-      {!hasGas && !hasDust && (
-        <div
-          style={{
-            padding: "14px",
-            backgroundColor: "#fff3cd",
-            border: "1px solid #ffe08a",
-            borderRadius: "8px",
-            marginBottom: "20px",
-          }}
-        >
-          No ATEX category or EPL detected in this marking.
-        </div>
-      )}
-
-      {result.notes.length > 0 && (
-        <div
-          style={{
-            marginTop: "20px",
-            padding: "16px",
-            backgroundColor: "#ffffff",
-            borderRadius: "10px",
-            border: "1px solid #ddd",
-          }}
-        >
-          <strong>Interpretation notes</strong>
-
-          <ul style={{ marginTop: "10px", paddingLeft: "20px" }}>
-            {result.notes.map((note) => (
-              <li key={note} style={{ marginBottom: "6px" }}>
-                {note}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       <div
         style={{
-          marginTop: "20px",
-          padding: "14px",
-          backgroundColor: "#eef5ff",
-          border: "1px solid #c9d8ff",
-          borderRadius: "8px",
-          fontSize: "13px",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          gap: "16px",
+          marginBottom: "18px",
         }}
       >
-        Zone suitability must still be verified against the installation
-        conditions, including gas/dust type, temperature class, ambient range,
-        protection concept and special conditions of use.
+        <div>
+          <label
+            htmlFor="atmosphere-select"
+            style={{ display: "block", marginBottom: "8px", fontWeight: 700 }}
+          >
+            Atmosphere Type
+          </label>
+
+          <select
+            id="atmosphere-select"
+            value={atmosphere}
+            onChange={(event) => setAtmosphere(event.target.value as AtmosphereType)}
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              fontSize: "15px",
+              borderRadius: "10px",
+              border: "1px solid #cbd5e1",
+              backgroundColor: "#ffffff",
+            }}
+          >
+            <option value="gas">Gas</option>
+            <option value="dust">Dust</option>
+          </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="zone-select"
+            style={{ display: "block", marginBottom: "8px", fontWeight: 700 }}
+          >
+            Installation Zone
+          </label>
+
+          {atmosphere === "gas" ? (
+            <select
+              id="zone-select"
+              value={gasZone}
+              onChange={(event) => setGasZone(event.target.value as GasZone)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                fontSize: "15px",
+                borderRadius: "10px",
+                border: "1px solid #cbd5e1",
+                backgroundColor: "#ffffff",
+              }}
+            >
+              <option value="0">Zone 0</option>
+              <option value="1">Zone 1</option>
+              <option value="2">Zone 2</option>
+            </select>
+          ) : (
+            <select
+              id="zone-select"
+              value={dustZone}
+              onChange={(event) => setDustZone(event.target.value as DustZone)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                fontSize: "15px",
+                borderRadius: "10px",
+                border: "1px solid #cbd5e1",
+                backgroundColor: "#ffffff",
+              }}
+            >
+              <option value="20">Zone 20</option>
+              <option value="21">Zone 21</option>
+              <option value="22">Zone 22</option>
+            </select>
+          )}
+        </div>
+      </div>
+
+      <div
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "8px",
+          padding: "8px 12px",
+          borderRadius: "999px",
+          fontWeight: 700,
+          marginBottom: "18px",
+          ...zoneBadgeStyle,
+        }}
+      >
+        <span>Zone {selectedZone}</span>
+        <span style={{ opacity: 0.8 }}>•</span>
+        <span>{zoneBadgeStyle.label}</span>
+      </div>
+
+      <div
+        style={{
+          marginBottom: "18px",
+          padding: "14px 16px",
+          borderRadius: "12px",
+          backgroundColor: "#f8fafc",
+          border: "1px solid #e2e8f0",
+        }}
+      >
+        <strong>Equipment marking being checked:</strong>
+        <div style={{ marginTop: "8px", fontFamily: "monospace", fontSize: "15px" }}>
+          {marking || "No marking entered"}
+        </div>
+      </div>
+
+      <div
+        style={{
+          padding: "16px",
+          borderRadius: "12px",
+          ...resultStyle[result.status],
+        }}
+      >
+        <div style={{ fontWeight: 700, marginBottom: "8px" }}>{result.title}</div>
+        <div style={{ lineHeight: 1.6 }}>{result.body}</div>
+      </div>
+
+      <div
+        style={{
+          marginTop: "18px",
+          padding: "14px 16px",
+          borderRadius: "12px",
+          backgroundColor: "#f8fafc",
+          border: "1px solid #e2e8f0",
+          lineHeight: 1.7,
+        }}
+      >
+        <strong>Rule of thumb used:</strong>
+        <ul style={{ marginBottom: 0 }}>
+          <li>Ga → Zone 0, 1, 2</li>
+          <li>Gb → Zone 1, 2</li>
+          <li>Gc → Zone 2</li>
+          <li>Da → Zone 20, 21, 22</li>
+          <li>Db → Zone 21, 22</li>
+          <li>Dc → Zone 22</li>
+        </ul>
       </div>
     </div>
   )
 }
+
+export default ZoneSuitabilityCard
