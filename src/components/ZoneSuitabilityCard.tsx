@@ -50,7 +50,7 @@ function extractCategory(marking: string): string | null {
 }
 
 function extractProtectionConcepts(marking: string): string[] {
-  const matches = marking.match(/\b(ia|ib|ic)\b/gi)
+  const matches = marking.match(/\b(ia|ib|ic|tb|tc)\b/gi)
   if (!matches) return []
   return matches.map((m) => m.toLowerCase())
 }
@@ -99,6 +99,10 @@ function getAllowedZonesFromProtection(concept: string): string[] {
       return ["1", "2"]
     case "ic":
       return ["2"]
+    case "tb":
+      return ["21", "22"]
+    case "tc":
+      return ["22"]
     default:
       return []
   }
@@ -150,9 +154,10 @@ function describeBasis(source: BasisSource, tokens: string[], atmosphere: Atmosp
   }
 
   if (source === "protection") {
-    return `The marking provides intrinsic safety protection concept ${tokens.join(
-      ", "
-    )} for gas atmospheres.`
+    const isDust = tokens.some((t) => ["tb", "tc"].includes(t))
+    return isDust
+      ? `The marking provides dust enclosure protection concept ${tokens.join(", ")} for dust atmospheres.`
+      : `The marking provides intrinsic safety protection concept ${tokens.join(", ")} for gas atmospheres.`
   }
 
   if (source === "category") {
@@ -184,18 +189,18 @@ function getBestBasis(marking: string, atmosphere: AtmosphereType) {
     }
   }
 
-  if (atmosphere === "gas" && protectionConcepts.length > 0) {
+  const gasProtectionConcepts = protectionConcepts.filter((c) => ["ia", "ib", "ic"].includes(c))
+  const dustProtectionConcepts = protectionConcepts.filter((c) => ["tb", "tc"].includes(c))
+  const relevantProtection = atmosphere === "gas" ? gasProtectionConcepts : dustProtectionConcepts
+
+  if (relevantProtection.length > 0) {
     const allowedZones = Array.from(
-      new Set(
-        protectionConcepts.flatMap((concept) =>
-          getAllowedZonesFromProtection(concept)
-        )
-      )
+      new Set(relevantProtection.flatMap((concept) => getAllowedZonesFromProtection(concept)))
     )
 
     return {
       source: "protection" as BasisSource,
-      tokens: protectionConcepts,
+      tokens: relevantProtection,
       allowedZones,
     }
   }

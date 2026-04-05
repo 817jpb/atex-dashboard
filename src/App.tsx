@@ -183,7 +183,7 @@ const tClassMaxSurfaceTemp: Record<TemperatureClass, number> = {
 }
 
 function getRequiredTClass(autoIgnitionTemp: number): TemperatureClass | null {
-  const ordered: TemperatureClass[] = ["T6", "T5", "T4", "T3", "T2", "T1"]
+  const ordered: TemperatureClass[] = ["T1", "T2", "T3", "T4", "T5", "T6"]
 
   for (const tClass of ordered) {
     if (tClassMaxSurfaceTemp[tClass] < autoIgnitionTemp) {
@@ -371,20 +371,17 @@ function App() {
   const [selectedGasZoneId, setSelectedGasZoneId] = useState(gasZones[0].id)
   const [selectedDustZoneId, setSelectedDustZoneId] = useState(dustZones[0].id)
   const [equipmentMarking, setEquipmentMarking] = useState("II 2G Ex db eb IIC T4 Gb")
-
-  const handleSubstanceChange = (name: string) => {
-  setSelectedSubstance(name)
-
-  const substance = substances.find((s) => s.name === name)
-  if (!substance) return
-
-  setGasType(substance.name)
-  setAutoIgnitionTemp(String(substance.autoIgnition))
-}
-
   const [selectedSubstance, setSelectedSubstance] = useState("Hydrogen")
   const [gasType, setGasType] = useState("Hydrogen")
   const [autoIgnitionTemp, setAutoIgnitionTemp] = useState("560")
+
+  const handleSubstanceChange = (name: string) => {
+    setSelectedSubstance(name)
+    const substance = substances.find((s) => s.name === name)
+    if (!substance) return
+    setGasType(substance.name)
+    setAutoIgnitionTemp(String(substance.autoIgnition))
+  }
 
   const selectedGasZone = gasZones.find((zone) => zone.id === selectedGasZoneId)
   const selectedDustZone = dustZones.find((zone) => zone.id === selectedDustZoneId)
