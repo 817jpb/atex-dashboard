@@ -46,7 +46,11 @@ const tokenDictionary: Record<string, string> = {
 }
 
 function MarkingInterpreter({ marking, setMarking }: MarkingInterpreterProps) {
+  const isEmpty = marking.trim().length === 0
+
   const interpretedItems = useMemo((): InterpretationItem[] => {
+    if (isEmpty) return []
+
     const tokens = marking
       .replace(/,/g, " ")
       .split(/\s+/)
@@ -57,25 +61,13 @@ function MarkingInterpreter({ marking, setMarking }: MarkingInterpreterProps) {
       token,
       meaning: tokenDictionary[token] ?? "No interpretation stored yet for this token",
     }))
-  }, [marking])
+  }, [marking, isEmpty])
 
   return (
-    <div
-      style={{
-        border: "1px solid #ccc",
-        borderRadius: "12px",
-        padding: "20px",
-        backgroundColor: "#eefaf1",
-        textAlign: "left",
-        marginTop: "24px",
-      }}
-    >
+    <div className="card card--green">
       <h2>Equipment Marking Interpreter</h2>
 
-      <label
-        htmlFor="marking-input"
-        style={{ display: "block", marginBottom: "8px", fontWeight: "bold" }}
-      >
+      <label htmlFor="marking-input" className="marking-label">
         Paste Ex Marking
       </label>
 
@@ -84,29 +76,29 @@ function MarkingInterpreter({ marking, setMarking }: MarkingInterpreterProps) {
         type="text"
         value={marking}
         onChange={(event) => setMarking(event.target.value)}
-        style={{
-          width: "100%",
-          maxWidth: "700px",
-          padding: "10px",
-          fontSize: "16px",
-          marginBottom: "16px",
-        }}
+        className="marking-input"
+        placeholder="e.g. II 2G Ex db IIC T4 Gb"
+        aria-label="Equipment marking input"
       />
 
       <p>
         <strong>Example:</strong> <code>II 2G Ex db IIC T4 Gb</code>
       </p>
 
-      <div>
-        <strong>Interpretation:</strong>
-        <ul>
-          {interpretedItems.map((item, index) => (
-            <li key={`${item.token}-${index}`}>
-              <strong>{item.token}:</strong> {item.meaning}
-            </li>
-          ))}
-        </ul>
-      </div>
+      {isEmpty ? (
+        <p className="marking-empty">Enter a marking above to see an interpretation.</p>
+      ) : (
+        <div>
+          <strong>Interpretation:</strong>
+          <ul>
+            {interpretedItems.map((item, index) => (
+              <li key={`${item.token}-${index}`}>
+                <strong>{item.token}:</strong> {item.meaning}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   )
 }

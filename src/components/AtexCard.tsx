@@ -22,15 +22,7 @@ function AtexCard({ title, selectedZone }: AtexCardProps) {
   }
 
   return (
-    <div
-      style={{
-        border: "1px solid #ccc",
-        borderRadius: "12px",
-        padding: "20px",
-        backgroundColor: "#eef4ff",
-        textAlign: "left",
-      }}
-    >
+    <div className="card card--blue">
       <h3>{title}</h3>
 
       <p>
@@ -57,7 +49,7 @@ function AtexCard({ title, selectedZone }: AtexCardProps) {
         <strong>Minimum EPL:</strong> {selectedZone.minimumEpl}
       </p>
 
-      <div style={{ marginTop: "10px" }}>
+      <div className="card__detail">
         <strong>Typical Equipment Marking Expectation:</strong>
 
         {selectedZone.hazardFamily === "gas" && (

@@ -31,21 +31,13 @@ type UsComparisonCardProps = {
 
 function UsComparisonCard({ title, mappedUS, mapping }: UsComparisonCardProps) {
   return (
-    <div
-      style={{
-        border: "1px solid #ccc",
-        borderRadius: "12px",
-        padding: "20px",
-        backgroundColor: "#f3f3f3",
-        textAlign: "left",
-      }}
-    >
+    <div className="card card--gray">
       <h3>{title}</h3>
 
       {mappedUS.length > 0 ? (
         <ul>
           {mappedUS.map((us) => (
-            <li key={us.id} style={{ marginBottom: "12px" }}>
+            <li key={us.id} className="us-card-item">
               <strong>
                 Class {us.class} Division {us.division}
               </strong>

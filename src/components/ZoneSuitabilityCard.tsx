@@ -6,23 +6,7 @@ type Props = {
 }
 
 function ZoneBadge({ children }: { children: React.ReactNode }) {
-  return (
-    <span
-      style={{
-        display: "inline-block",
-        padding: "8px 14px",
-        marginRight: "10px",
-        marginBottom: "10px",
-        borderRadius: "20px",
-        backgroundColor: "#d9f7e8",
-        border: "1px solid #7ed4a5",
-        fontWeight: 600,
-        fontSize: "14px",
-      }}
-    >
-      {children}
-    </span>
-  )
+  return <span className="zone-badge">{children}</span>
 }
 
 export default function ZoneSuitabilityCard({ marking }: Props) {
@@ -32,52 +16,41 @@ export default function ZoneSuitabilityCard({ marking }: Props) {
   const hasDust = result.dust.length > 0
 
   return (
-    <div
-      style={{
-        border: "1px solid #ccc",
-        borderRadius: "12px",
-        padding: "22px",
-        backgroundColor: "#f6f9ff",
-        textAlign: "left",
-        marginTop: "28px",
-      }}
-    >
-      <h2 style={{ marginBottom: "12px" }}>Permitted ATEX Zones</h2>
+    <div className="card card--light-blue">
+      <h2>Permitted ATEX Zones</h2>
 
-      <p style={{ marginBottom: "18px", color: "#444" }}>
+      <p className="zone-meta" style={{ marginBottom: "18px" }}>
         Determined from equipment category and EPL contained in the marking.
       </p>
 
-      {/* Gas Zones */}
       {hasGas && (
-        <div style={{ marginBottom: "20px" }}>
-          <h3 style={{ marginBottom: "10px" }}>Gas Atmosphere</h3>
+        <div className="zone-section">
+          <h3>Gas Atmosphere</h3>
 
-          <div style={{ marginBottom: "10px" }}>
+          <div>
             {result.gas.map((zone) => (
               <ZoneBadge key={zone}>{zone}</ZoneBadge>
             ))}
           </div>
 
-          <div style={{ fontSize: "13px", color: "#666" }}>
+          <div className="zone-meta">
             Category: {result.matched.gasCategory ?? "—"} | EPL:{" "}
             {result.matched.gasEpl ?? "—"}
           </div>
         </div>
       )}
 
-      {/* Dust Zones */}
       {hasDust && (
-        <div style={{ marginBottom: "20px" }}>
-          <h3 style={{ marginBottom: "10px" }}>Dust Atmosphere</h3>
+        <div className="zone-section">
+          <h3>Dust Atmosphere</h3>
 
-          <div style={{ marginBottom: "10px" }}>
+          <div>
             {result.dust.map((zone) => (
               <ZoneBadge key={zone}>{zone}</ZoneBadge>
             ))}
           </div>
 
-          <div style={{ fontSize: "13px", color: "#666" }}>
+          <div className="zone-meta">
             Category: {result.matched.dustCategory ?? "—"} | EPL:{" "}
             {result.matched.dustEpl ?? "—"}
           </div>
@@ -85,51 +58,23 @@ export default function ZoneSuitabilityCard({ marking }: Props) {
       )}
 
       {!hasGas && !hasDust && (
-        <div
-          style={{
-            padding: "14px",
-            backgroundColor: "#fff3cd",
-            border: "1px solid #ffe08a",
-            borderRadius: "8px",
-            marginBottom: "20px",
-          }}
-        >
+        <div className="no-zones-warning">
           No ATEX category or EPL detected in this marking.
         </div>
       )}
 
       {result.notes.length > 0 && (
-        <div
-          style={{
-            marginTop: "20px",
-            padding: "16px",
-            backgroundColor: "#ffffff",
-            borderRadius: "10px",
-            border: "1px solid #ddd",
-          }}
-        >
+        <div className="interpretation-notes">
           <strong>Interpretation notes</strong>
-
-          <ul style={{ marginTop: "10px", paddingLeft: "20px" }}>
+          <ul>
             {result.notes.map((note) => (
-              <li key={note} style={{ marginBottom: "6px" }}>
-                {note}
-              </li>
+              <li key={note}>{note}</li>
             ))}
           </ul>
         </div>
       )}
 
-      <div
-        style={{
-          marginTop: "20px",
-          padding: "14px",
-          backgroundColor: "#eef5ff",
-          border: "1px solid #c9d8ff",
-          borderRadius: "8px",
-          fontSize: "13px",
-        }}
-      >
+      <div className="disclaimer-box">
         Zone suitability must still be verified against the installation
         conditions, including gas/dust type, temperature class, ambient range,
         protection concept and special conditions of use.
