@@ -8,10 +8,11 @@ import UsComparisonCard from "./components/USComparisonCard"
 import MarkingInterpreter from "./components/MarkingInterpreter"
 import ZoneSuitabilityCard from "./components/ZoneSuitabilityCard"
 import SubstanceHelper from "./components/SubstanceHelper"
+import ProductSelector from "./components/ProductSelector"
 import { substances } from "./data/substances"
 
 type HazardMode = "gas" | "dust" | "gas-dust"
-type MainTab = "overview" | "marking" | "zone" | "temperature"
+type MainTab = "overview" | "marking" | "zone" | "temperature" | "products"
 
 type TemperatureClass = "T1" | "T2" | "T3" | "T4" | "T5" | "T6"
 
@@ -432,6 +433,7 @@ function App() {
             <div style={heroBadgeStyle}>Marking interpretation</div>
             <div style={heroBadgeStyle}>Zone suitability checks</div>
             <div style={heroBadgeStyle}>Temperature class support</div>
+            <div style={heroBadgeStyle}>Product suitability selector</div>
           </div>
         </div>
 
@@ -467,6 +469,14 @@ function App() {
               style={tabButtonStyle(mainTab === "temperature")}
             >
               Temperature Class
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setMainTab("products")}
+              style={tabButtonStyle(mainTab === "products")}
+            >
+              Product Selector
             </button>
           </div>
         </div>
@@ -750,6 +760,12 @@ function App() {
 />
   </div>
 )}
+
+        {mainTab === "products" && (
+          <div style={contentSectionStyle}>
+            <ProductSelector />
+          </div>
+        )}
       </div>
     </div>
   )
