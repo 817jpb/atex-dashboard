@@ -1,5 +1,6 @@
 import "./App.css"
 import { useMemo, useState } from "react"
+import DuctCleaningDashboard from "./components/ductcleaning/DuctCleaningDashboard"
 import { zones } from "./data/zones"
 import { mappingRules } from "./data/mappingRules"
 import { usClassDivisions } from "./data/usClassDivisions"
@@ -12,7 +13,7 @@ import ProductSelector from "./components/ProductSelector"
 import { substances } from "./data/substances"
 
 type HazardMode = "gas" | "dust" | "gas-dust"
-type MainTab = "overview" | "marking" | "zone" | "temperature" | "products"
+type MainTab = "overview" | "marking" | "zone" | "temperature" | "products" | "ductcleaning"
 
 type TemperatureClass = "T1" | "T2" | "T3" | "T4" | "T5" | "T6"
 
@@ -478,6 +479,14 @@ function App() {
             >
               Product Selector
             </button>
+
+            <button
+              type="button"
+              onClick={() => setMainTab("ductcleaning")}
+              style={tabButtonStyle(mainTab === "ductcleaning")}
+            >
+              Duct Cleaning Logger
+            </button>
           </div>
         </div>
 
@@ -764,6 +773,12 @@ function App() {
         {mainTab === "products" && (
           <div style={contentSectionStyle}>
             <ProductSelector />
+          </div>
+        )}
+
+        {mainTab === "ductcleaning" && (
+          <div style={contentSectionStyle}>
+            <DuctCleaningDashboard />
           </div>
         )}
       </div>
